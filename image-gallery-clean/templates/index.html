@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>גלריית תמונות - Image Gallery</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-primary mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-images"></i> גלריית התמונות שלי
+            </span>
+            <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-upload"></i> העלה תמונה
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center my-5" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">טוען...</span>
+            </div>
+            <p class="mt-2">טוען תמונות...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center my-5" style="display: none;">
+            <i class="bi bi-image" style="font-size: 4rem; color: #ccc;"></i>
+            <h3 class="mt-3">אין תמונות בגלריה</h3>
+            <p class="text-muted">התחל על ידי העלאת התמונה הראשונה שלך</p>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-upload"></i> העלה תמונה
+            </button>
+        </div>
+
+        <!-- Alert for messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Gallery Grid -->
+        <div id="galleryGrid" class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+            <!-- Images will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">העלאת תמונה חדשה</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm">
+                        <div class="mb-3">
+                            <label for="imageFile" class="form-label">בחר תמונה *</label>
+                            <input type="file" class="form-control" id="imageFile" accept="image/*" required>
+                            <div class="form-text">גודל מקסימלי: 10MB</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="imageTitle" class="form-label">כותרת *</label>
+                            <input type="text" class="form-control" id="imageTitle" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="imageDescription" class="form-label">תיאור</label>
+                            <textarea class="form-control" id="imageDescription" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="imageTags" class="form-label">תגיות</label>
+                            <input type="text" class="form-control" id="imageTags" placeholder="טבע, נוף, חופשה (מופרד בפסיקים)">
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="imagePreview" class="mb-3 text-center" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview" style="max-width: 100%; max-height: 300px;">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="btn btn-primary" id="uploadBtn">
+                        <i class="bi bi-cloud-upload"></i> העלה
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת תמונה</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editImageId">
+                        
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label">כותרת</label>
+                            <input type="text" class="form-control" id="editTitle">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">תיאור</label>
+                            <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editTags" class="form-label">תגיות</label>
+                            <input type="text" class="form-control" id="editTags" placeholder="טבע, נוף, חופשה (מופרד בפסיקים)">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="btn btn-primary" id="saveEditBtn">
+                        <i class="bi bi-save"></i> שמור
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="viewImage" src="" alt="" style="max-width: 100%; height: auto;">
+                    <div class="mt-3 text-end">
+                        <p id="viewDescription" class="text-muted"></p>
+                        <div id="viewTags"></div>
+                        <small class="text-muted" id="viewDate"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

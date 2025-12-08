@@ -1,0 +1,16 @@
+# terraform.tfvars.example
+# Copy this file to terraform.tfvars and fill in your values
+
+aws_region           = "us-east-1"
+project_name         = "image-gallery"
+github_org           = "your-github-username"      # ← שנה את זה!
+github_repo          = "image-gallery"             # ← שנה את זה!
+ecr_repository_name  = "image-gallery"
+image_retention_count = 10
+
+tags = {
+  Project     = "image-gallery"
+  ManagedBy   = "terraform"
+  Environment = "production"
+  Owner       = "devops-team"
+}
