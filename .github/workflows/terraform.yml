@@ -1,0 +1,81 @@
+name: Terraform - Sync Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/ci-pipeline/**'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform Apply and Sync
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: terraform/ci-pipeline
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+          terraform_wrapper: false  # Important for output parsing
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.TERRAFORM_ROLE_ARN }}  # Different role for Terraform
+          aws-region: us-east-1
+      
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform Validate
+        run: terraform validate
+      
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+      
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+      
+      - name: Get Terraform Outputs
+        id: outputs
+        run: |
+          echo "ecr_repository=$(terraform output -raw ecr_repository_name)" >> $GITHUB_OUTPUT
+          echo "ecr_url=$(terraform output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
+          echo "role_arn=$(terraform output -raw github_actions_role_arn)" >> $GITHUB_OUTPUT
+          echo "aws_region=$(terraform output -raw aws_region)" >> $GITHUB_OUTPUT
+          echo "aws_account=$(terraform output -raw aws_account_id)" >> $GITHUB_OUTPUT
+      
+      - name: Update GitHub Secrets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Update secrets using GitHub CLI
+          echo "${{ steps.outputs.outputs.role_arn }}" | gh secret set AWS_ROLE_ARN --repo ${{ github.repository }}
+          echo "${{ steps.outputs.outputs.ecr_repository }}" | gh secret set ECR_REPOSITORY --repo ${{ github.repository }}
+          echo "${{ steps.outputs.outputs.ecr_url }}" | gh secret set ECR_REPOSITORY_URL --repo ${{ github.repository }}
+          echo "${{ steps.outputs.outputs.aws_region }}" | gh secret set AWS_REGION --repo ${{ github.repository }}
+          echo "${{ steps.outputs.outputs.aws_account }}" | gh secret set AWS_ACCOUNT_ID --repo ${{ github.repository }}
+      
+      - name: Summary
+        run: |
+          echo "### 🎉 Terraform Applied Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**GitHub Secrets Updated:**" >> $GITHUB_STEP_SUMMARY
+          echo "- AWS_ROLE_ARN: ${{ steps.outputs.outputs.role_arn }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ECR_REPOSITORY: ${{ steps.outputs.outputs.ecr_repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- AWS_REGION: ${{ steps.outputs.outputs.aws_region }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "CI workflow will now use these values automatically!" >> $GITHUB_STEP_SUMMARY

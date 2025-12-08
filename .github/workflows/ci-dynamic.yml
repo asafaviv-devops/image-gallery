@@ -1,0 +1,88 @@
+name: CI - Build and Push (Dynamic ECR)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: GitHubActions-${{ github.run_id }}
+      
+      - name: Discover ECR Repository
+        id: ecr
+        run: |
+          # Option 1: Use secret if exists
+          if [ -n "${{ secrets.ECR_REPOSITORY }}" ]; then
+            ECR_REPO="${{ secrets.ECR_REPOSITORY }}"
+          else
+            # Option 2: Auto-discover from tags
+            ECR_REPO=$(aws ecr describe-repositories \
+              --query "repositories[?tags[?key=='Project' && value=='image-gallery']].repositoryName" \
+              --output text)
+            
+            # Option 3: Fallback to default
+            if [ -z "$ECR_REPO" ]; then
+              ECR_REPO="image-gallery"
+            fi
+          fi
+          
+          echo "repository=$ECR_REPO" >> $GITHUB_OUTPUT
+          echo "📦 Using ECR Repository: $ECR_REPO"
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/${{ steps.ecr.outputs.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Summary
+        run: |
+          echo "### 🚀 Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository**: ${{ steps.ecr.outputs.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry**: ${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags**: ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
