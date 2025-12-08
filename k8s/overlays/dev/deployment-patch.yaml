@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-gallery
+spec:
+  replicas: 1  # Dev uses 1 replica
+  template:
+    spec:
+      containers:
+      - name: app
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
