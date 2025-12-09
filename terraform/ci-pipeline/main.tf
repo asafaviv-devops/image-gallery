@@ -9,13 +9,6 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  # Optional: Use S3 backend for state
-  # backend "s3" {
-  #   bucket = "my-terraform-state-bucket"
-  #   key    = "image-gallery/ci-pipeline/terraform.tfstate"
-  #   region = "us-east-1"
-  # }
 }
 
 provider "aws" {

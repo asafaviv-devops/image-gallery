@@ -75,11 +75,11 @@ github_org          = "$GITHUB_ORG"
 github_repo         = "$GITHUB_REPO"
 ecr_repository_name = "$ECR_REPO"
 image_retention_count = 10
+env                   = "dev"
 
 tags = {
   Project     = "image-gallery"
   ManagedBy   = "terraform"
-  Environment = "production"
 }
 EOF
 

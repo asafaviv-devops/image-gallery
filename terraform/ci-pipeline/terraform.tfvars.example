@@ -3,9 +3,9 @@
 
 aws_region           = "us-east-1"
 project_name         = "image-gallery"
-env                  = "dev"                           # ← Environment
-github_org           = "your-github-username"          # ← שנה את זה!
-github_repo          = "image-gallery"                 # ← שנה את זה!
+env                  = "dev"                           
+github_org           = "your-github-username"         
+github_repo          = "image-gallery"                
 ecr_repository_name  = "image-gallery"
 image_retention_count = 10
 
