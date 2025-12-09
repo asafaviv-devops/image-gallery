@@ -22,4 +22,4 @@ configMapGenerator:
   behavior: merge
   literals:
   - LOG_LEVEL=WARNING
-  - S3_BUCKET=image-gallery-prod-bucket
+  # S3_BUCKET is injected by CD pipeline from Terraform output

@@ -12,6 +12,20 @@ ROLE_ARN=$(terraform output -raw github_actions_role_arn)
 AWS_REGION=$(terraform output -raw aws_region)
 AWS_ACCOUNT=$(terraform output -raw aws_account_id)
 
+# S3 bucket (if exists)
+if terraform output s3_bucket_name &> /dev/null; then
+  S3_BUCKET=$(terraform output -raw s3_bucket_name)
+else
+  S3_BUCKET=""
+fi
+
+# Check if terraform_automation_role_arn exists (optional)
+if terraform output terraform_automation_role_arn &> /dev/null; then
+  TERRAFORM_ROLE_ARN=$(terraform output -raw terraform_automation_role_arn)
+else
+  TERRAFORM_ROLE_ARN=""
+fi
+
 # GitHub repo (get from terraform.tfvars)
 GITHUB_ORG=$(grep github_org terraform.tfvars | cut -d'"' -f2)
 GITHUB_REPO=$(grep github_repo terraform.tfvars | cut -d'"' -f2)
@@ -24,6 +38,12 @@ echo "  ECR_REPOSITORY_URL: $ECR_URL"
 echo "  AWS_ROLE_ARN: $ROLE_ARN"
 echo "  AWS_REGION: $AWS_REGION"
 echo "  AWS_ACCOUNT_ID: $AWS_ACCOUNT"
+if [ -n "$S3_BUCKET" ]; then
+  echo "  S3_BUCKET_NAME: $S3_BUCKET"
+fi
+if [ -n "$TERRAFORM_ROLE_ARN" ]; then
+  echo "  TERRAFORM_ROLE_ARN: $TERRAFORM_ROLE_ARN"
+fi
 echo ""
 
 # Check if GitHub CLI is installed
@@ -39,6 +59,12 @@ if ! command -v gh &> /dev/null; then
     echo "ECR_REPOSITORY_URL=$ECR_URL"
     echo "AWS_REGION=$AWS_REGION"
     echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT"
+    if [ -n "$S3_BUCKET" ]; then
+      echo "S3_BUCKET_NAME=$S3_BUCKET"
+    fi
+    if [ -n "$TERRAFORM_ROLE_ARN" ]; then
+      echo "TERRAFORM_ROLE_ARN=$TERRAFORM_ROLE_ARN"
+    fi
     exit 1
 fi
 
@@ -71,6 +97,18 @@ gh secret set AWS_ACCOUNT_ID \
     --repo "$GITHUB_ORG/$GITHUB_REPO" \
     --body "$AWS_ACCOUNT"
 
+if [ -n "$S3_BUCKET" ]; then
+  gh secret set S3_BUCKET_NAME \
+      --repo "$GITHUB_ORG/$GITHUB_REPO" \
+      --body "$S3_BUCKET"
+fi
+
+if [ -n "$TERRAFORM_ROLE_ARN" ]; then
+  gh secret set TERRAFORM_ROLE_ARN \
+      --repo "$GITHUB_ORG/$GITHUB_REPO" \
+      --body "$TERRAFORM_ROLE_ARN"
+fi
+
 echo ""
 echo "✅ GitHub Secrets updated successfully!"
 echo ""
@@ -78,3 +116,9 @@ echo "You can now use them in workflows:"
 echo '  ${{ secrets.AWS_ROLE_ARN }}'
 echo '  ${{ secrets.ECR_REPOSITORY }}'
 echo '  ${{ secrets.AWS_REGION }}'
+if [ -n "$S3_BUCKET" ]; then
+  echo '  ${{ secrets.S3_BUCKET_NAME }}'
+fi
+if [ -n "$TERRAFORM_ROLE_ARN" ]; then
+  echo '  ${{ secrets.TERRAFORM_ROLE_ARN }}'
+fi

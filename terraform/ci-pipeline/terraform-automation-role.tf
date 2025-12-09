@@ -3,7 +3,7 @@
 
 resource "aws_iam_role" "terraform_automation" {
   name = "${var.project_name}-terraform-automation-role"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -22,7 +22,7 @@ resource "aws_iam_role" "terraform_automation" {
       }
     }]
   })
-  
+
   tags = merge(var.tags, {
     Name = "${var.project_name}-terraform-automation-role"
   })

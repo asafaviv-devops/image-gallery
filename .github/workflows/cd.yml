@@ -95,13 +95,21 @@ jobs:
           ENV=${{ steps.env.outputs.environment }}
           TAG=${{ steps.env.outputs.image_tag }}
           ECR_REPO="${{ secrets.ECR_REPOSITORY_URL || '184890426414.dkr.ecr.us-east-1.amazonaws.com/image-gallery' }}"
+          S3_BUCKET="${{ secrets.S3_BUCKET_NAME || 'image-gallery-dev-images' }}"
           
           echo "🚀 Deploying to $ENV environment..."
+          echo "📦 Image: $ECR_REPO:$TAG"
+          echo "🪣 S3 Bucket: $S3_BUCKET"
           
           cd k8s/overlays/$ENV
           
           # Set image tag in kustomization
           kustomize edit set image IMAGE_PLACEHOLDER=$ECR_REPO:$TAG
+          
+          # Inject S3 bucket name into ConfigMap
+          kustomize edit set configmap image-gallery-config \
+            --from-literal=S3_BUCKET=$S3_BUCKET \
+            --behavior=merge
           
           # Show what will be applied
           echo "📝 Generated manifests:"

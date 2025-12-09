@@ -36,6 +36,12 @@ variable "image_retention_count" {
   default     = 10
 }
 
+variable "env" {
+  description = "Environment (dev/staging/prod)"
+  type        = string
+  default     = "dev"
+}
+
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)

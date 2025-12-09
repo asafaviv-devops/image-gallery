@@ -1,29 +1,29 @@
 # oidc.tf
-
 # GitHub OIDC Provider
+
 resource "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
-  
+
   client_id_list = [
     "sts.amazonaws.com"
   ]
-  
+
   # GitHub's thumbprint - this rarely changes
   thumbprint_list = [
     "6938fd4d98bab03faadb97b34396831e3780aea1",
-    "1c58a3a8518e8759bf075b76b750d4f2df264fcd"  # Backup thumbprint
+    "1c58a3a8518e8759bf075b76b750d4f2df264fcd" # Backup thumbprint
   ]
-  
-  tags = {
-    Name = "github-actions-oidc"
-  }
+
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-github-oidc"
+  })
 }
 
 # IAM Role for GitHub Actions
 resource "aws_iam_role" "github_actions" {
   name        = "${var.project_name}-github-actions-role"
   description = "IAM role for GitHub Actions OIDC"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -45,17 +45,17 @@ resource "aws_iam_role" "github_actions" {
       }
     ]
   })
-  
-  tags = {
+
+  tags = merge(var.tags, {
     Name = "${var.project_name}-github-actions-role"
-  }
+  })
 }
 
 # IAM Policy for ECR access
 resource "aws_iam_role_policy" "github_actions_ecr" {
-  name = "${var.project_name}-ecr-policy"
+  name = "${var.project_name}-github-actions-ecr-policy"
   role = aws_iam_role.github_actions.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -68,19 +68,19 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
         Resource = "*"
       },
       {
-        Sid    = "ECRPushPull"
+        Sid    = "ECRRepositoryAccess"
         Effect = "Allow"
         Action = [
+          "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage",
-          "ecr:BatchCheckLayerAvailability",
           "ecr:PutImage",
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
           "ecr:DescribeRepositories",
-          "ecr:DescribeImages",
-          "ecr:ListImages"
+          "ecr:ListImages",
+          "ecr:DescribeImages"
         ]
         Resource = aws_ecr_repository.app.arn
       }
@@ -88,11 +88,41 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
   })
 }
 
-# Optional: Add CloudWatch Logs permissions for debugging
-resource "aws_iam_role_policy" "github_actions_logs" {
-  name = "${var.project_name}-logs-policy"
+# IAM Policy for S3 access
+resource "aws_iam_role_policy" "github_actions_s3" {
+  name = "${var.project_name}-github-actions-s3-policy"
   role = aws_iam_role.github_actions.id
-  
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "S3BucketAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = aws_s3_bucket.images.arn
+      },
+      {
+        Sid    = "S3ObjectAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "${aws_s3_bucket.images.arn}/*"
+      }
+    ]
+  })
+}
+
+# IAM Policy for CloudWatch Logs
+resource "aws_iam_role_policy" "github_actions_logs" {
+  name = "${var.project_name}-github-actions-logs-policy"
+  role = aws_iam_role.github_actions.id
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -102,9 +132,10 @@ resource "aws_iam_role_policy" "github_actions_logs" {
         Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
-          "logs:PutLogEvents"
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
         ]
-        Resource = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/github-actions/*"
+        Resource = "arn:aws:logs:*:*:*"
       }
     ]
   })
