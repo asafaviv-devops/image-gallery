@@ -52,3 +52,9 @@ variable "public_access_cidrs" {
   description = "CIDR blocks allowed to access the public EKS endpoint."
 }
 
+variable "admin_role_arn" {
+  description = "IAM role/user ARN for EKS admin access"
+  type        = string
+  default     = ""  
+}
+

@@ -2,16 +2,16 @@ provider "aws" {
   region = "us-east-1"
 
   assume_role {
-    role_arn     = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
+    role_arn     = var.role_arn
     session_name = "terraform-staging"
   }
 }
 
 module "network" {
-  source                = "../../modules/network"
+  source = "../../modules/network"
 
-  app_name              = var.app_name
-  env                   = var.env
+  app_name = var.app_name
+  env      = var.env
 
   vpc_cidr              = var.vpc_cidr
   public_subnets_cidrs  = var.public_subnets

@@ -1,3 +1,4 @@
+variable "admin_role_arn" {}
 variable "role_arn" {}
 variable "app_name" {
   type        = string

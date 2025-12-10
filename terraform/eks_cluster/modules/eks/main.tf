@@ -1,6 +1,6 @@
 locals {
   prefix = "${var.app_name}-${var.env}"
-
+  
   common_tags = merge(
     var.tags,
     {
@@ -17,14 +17,11 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
-
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = ">= 1.14.0"
-    }
   }
 }
 
+# Data sources
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "cluster" {
   name = "${local.prefix}-eks-cluster-role"
@@ -40,18 +37,6 @@ resource "aws_iam_role" "cluster" {
 
   tags = local.common_tags
 }
-
-provider "kubectl" {
-  host                   = aws_eks_cluster.this.endpoint
-  cluster_ca_certificate = base64decode(aws_eks_cluster.this.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-  load_config_file       = false
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  name = aws_eks_cluster.this.name
-}
-
 
 resource "aws_iam_role_policy_attachment" "cluster_policy" {
   role       = aws_iam_role.cluster.name
@@ -73,6 +58,22 @@ resource "aws_eks_cluster" "this" {
   tags = merge(local.common_tags, {
     Name = "${local.prefix}-eks-cluster"
   })
+}
+
+resource "aws_eks_access_entry" "admin" {
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = var.admin_role_arn != "" ? var.admin_role_arn : data.aws_caller_identity.current.arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "admin" {
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = aws_eks_access_entry.admin.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
 }
 
 resource "aws_iam_role" "node" {
@@ -123,4 +124,3 @@ resource "aws_eks_node_group" "default" {
     Name = "${local.prefix}-eks-ng"
   })
 }
-

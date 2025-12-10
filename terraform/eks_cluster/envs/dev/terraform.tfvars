@@ -1,9 +1,10 @@
 role_arn = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
+admin_role_arn = "arn:aws:iam::184890426414:user/asaf"
 
 app_name = "test"
 env      = "dev"
 
- cluster_name = "test-dev"
+cluster_name = "test-dev"
 
 vpc_cidr = "10.0.0.0/16"
 
