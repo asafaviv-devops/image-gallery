@@ -1,3 +1,4 @@
+variable "github_actions_role_arn" {}
 variable "admin_role_arn" {}
 variable "role_arn" {}
 variable "app_name" {

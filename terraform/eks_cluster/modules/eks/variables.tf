@@ -55,7 +55,7 @@ variable "public_access_cidrs" {
 variable "admin_role_arn" {
   description = "IAM role/user ARN for EKS admin access"
   type        = string
-  default     = ""  
+  default     = ""
 }
 
 variable "github_actions_role_arn" {

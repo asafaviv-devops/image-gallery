@@ -1,5 +1,5 @@
-role_arn       = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
-admin_role_arn = "arn:aws:iam::184890426414:user/asaf_aviv"
+role_arn                = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
+admin_role_arn          = "arn:aws:iam::184890426414:user/asaf_aviv"
 github_actions_role_arn = "arn:aws:iam::184890426414:role/image-gallery-github-actions-role"
 
 app_name = "image-gallery"

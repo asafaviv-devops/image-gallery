@@ -30,8 +30,8 @@ module "eks" {
   vpc_id       = module.network.vpc_id
   subnets      = module.network.private_subnet_ids
 
-  admin_role_arn = var.admin_role_arn
-github_actions_role_arn = var.github_actions_role_arn
+  admin_role_arn          = var.admin_role_arn
+  github_actions_role_arn = var.github_actions_role_arn
 
   tags = {}
 
