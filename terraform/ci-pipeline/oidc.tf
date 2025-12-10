@@ -118,6 +118,34 @@ resource "aws_iam_role_policy" "github_actions_s3" {
   })
 }
 
+resource "aws_iam_role_policy" "github_actions_eks" {
+  name = "${var.project_name}-github-actions-eks-policy"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "EKSDescribeCluster"
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "EKSClusterAccess"
+        Effect = "Allow"
+        Action = [
+          "eks:AccessKubernetesApi"
+        ]
+        Resource = "arn:aws:eks:*:${data.aws_caller_identity.current.account_id}:cluster/*"
+      }
+    ]
+  })
+}
+
 # IAM Policy for CloudWatch Logs
 resource "aws_iam_role_policy" "github_actions_logs" {
   name = "${var.project_name}-github-actions-logs-policy"

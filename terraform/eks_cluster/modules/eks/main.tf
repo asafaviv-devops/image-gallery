@@ -54,6 +54,9 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access  = var.endpoint_public_access
     public_access_cidrs     = var.public_access_cidrs
   }
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+  }
 
   tags = merge(local.common_tags, {
     Name = "${local.prefix}-eks-cluster"

@@ -1,5 +1,5 @@
 role_arn       = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
-admin_role_arn = "arn:aws:iam::184890426414:user/asaf"
+admin_role_arn = "arn:aws:iam::184890426414:user/asaf_aviv"
 
 app_name = "image-gallery"
 env      = "dev"
