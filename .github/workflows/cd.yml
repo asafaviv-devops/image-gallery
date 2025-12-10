@@ -75,7 +75,7 @@ jobs:
       - name: Update kubeconfig
         run: |
           # Update kubeconfig for the appropriate cluster
-          CLUSTER_NAME="test-${{ steps.env.outputs.environment }}-eks-cluster"
+          CLUSTER_NAME="image-gallery-${{ steps.env.outputs.environment }}-eks-cluster"
           echo "🔗 Connecting to cluster: $CLUSTER_NAME"
           
           aws eks update-kubeconfig \
