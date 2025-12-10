@@ -1,4 +1,4 @@
-role_arn = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
+role_arn       = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
 admin_role_arn = "arn:aws:iam::184890426414:user/asaf"
 
 app_name = "hello-world"

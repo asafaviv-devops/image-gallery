@@ -1,10 +1,10 @@
-role_arn = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
+role_arn       = "arn:aws:iam::184890426414:role/TerraformExecutionRole"
 admin_role_arn = "arn:aws:iam::184890426414:user/asaf"
 
-app_name = "test"
+app_name = "image-gallery"
 env      = "dev"
 
-cluster_name = "test-dev"
+cluster_name = "image-gallery"
 
 vpc_cidr = "10.0.0.0/16"
 
