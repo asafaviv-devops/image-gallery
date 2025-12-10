@@ -58,3 +58,9 @@ variable "admin_role_arn" {
   default     = ""  
 }
 
+variable "github_actions_role_arn" {
+  description = "IAM role ARN for GitHub Actions CD"
+  type        = string
+  default     = ""
+}
+

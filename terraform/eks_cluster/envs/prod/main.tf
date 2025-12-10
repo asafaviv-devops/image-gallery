@@ -31,6 +31,7 @@ module "eks" {
   subnets      = module.network.private_subnet_ids
 
   admin_role_arn = var.admin_role_arn
+  github_actions_role_arn = var.github_actions_role_arn
 
   tags = {}
 
