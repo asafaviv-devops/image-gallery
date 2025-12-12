@@ -19,13 +19,6 @@ else
   S3_BUCKET=""
 fi
 
-# Check if terraform_automation_role_arn exists (optional)
-if terraform output terraform_automation_role_arn &> /dev/null; then
-  TERRAFORM_ROLE_ARN=$(terraform output -raw terraform_automation_role_arn)
-else
-  TERRAFORM_ROLE_ARN=""
-fi
-
 # GitHub repo (get from terraform.tfvars)
 GITHUB_ORG=$(grep github_org terraform.tfvars | cut -d'"' -f2)
 GITHUB_REPO=$(grep github_repo terraform.tfvars | cut -d'"' -f2)
@@ -40,9 +33,6 @@ echo "  AWS_REGION: $AWS_REGION"
 echo "  AWS_ACCOUNT_ID: $AWS_ACCOUNT"
 if [ -n "$S3_BUCKET" ]; then
   echo "  S3_BUCKET_NAME: $S3_BUCKET"
-fi
-if [ -n "$TERRAFORM_ROLE_ARN" ]; then
-  echo "  TERRAFORM_ROLE_ARN: $TERRAFORM_ROLE_ARN"
 fi
 echo ""
 
@@ -61,9 +51,6 @@ if ! command -v gh &> /dev/null; then
     echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT"
     if [ -n "$S3_BUCKET" ]; then
       echo "S3_BUCKET_NAME=$S3_BUCKET"
-    fi
-    if [ -n "$TERRAFORM_ROLE_ARN" ]; then
-      echo "TERRAFORM_ROLE_ARN=$TERRAFORM_ROLE_ARN"
     fi
     exit 1
 fi
@@ -103,12 +90,6 @@ if [ -n "$S3_BUCKET" ]; then
       --body "$S3_BUCKET"
 fi
 
-if [ -n "$TERRAFORM_ROLE_ARN" ]; then
-  gh secret set TERRAFORM_ROLE_ARN \
-      --repo "$GITHUB_ORG/$GITHUB_REPO" \
-      --body "$TERRAFORM_ROLE_ARN"
-fi
-
 echo ""
 echo "✅ GitHub Secrets updated successfully!"
 echo ""
@@ -118,7 +99,4 @@ echo '  ${{ secrets.ECR_REPOSITORY }}'
 echo '  ${{ secrets.AWS_REGION }}'
 if [ -n "$S3_BUCKET" ]; then
   echo '  ${{ secrets.S3_BUCKET_NAME }}'
-fi
-if [ -n "$TERRAFORM_ROLE_ARN" ]; then
-  echo '  ${{ secrets.TERRAFORM_ROLE_ARN }}'
 fi
