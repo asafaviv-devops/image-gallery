@@ -138,40 +138,6 @@ resource "aws_iam_policy" "github_actions_cd" {
   })
 }
 
-# S3 Policy - Image Storage (Least Privilege)
-resource "aws_iam_policy" "github_actions_s3" {
-  name        = "${var.project_name}-github-actions-s3-policy"
-  description = "Least privilege policy for GitHub Actions - S3 image storage access"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "S3BucketAccess"
-        Effect = "Allow"
-        Action = [
-          "s3:ListBucket"
-        ]
-        Resource = "arn:aws:s3:::${var.project_name}-*-images"
-      },
-      {
-        Sid    = "S3ObjectAccess"
-        Effect = "Allow"
-        Action = [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:DeleteObject"
-        ]
-        Resource = "arn:aws:s3:::${var.project_name}-*-images/*"
-      }
-    ]
-  })
-
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-s3-policy"
-  })
-}
-
 # ========================================
 # Policy Attachments
 # ========================================
@@ -186,10 +152,4 @@ resource "aws_iam_role_policy_attachment" "github_actions_ci" {
 resource "aws_iam_role_policy_attachment" "github_actions_cd" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_actions_cd.arn
-}
-
-# Attach S3 Policy to Role
-resource "aws_iam_role_policy_attachment" "github_actions_s3" {
-  role       = aws_iam_role.github_actions.name
-  policy_arn = aws_iam_policy.github_actions_s3.arn
 }
