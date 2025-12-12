@@ -51,10 +51,14 @@ resource "aws_iam_role" "github_actions" {
   })
 }
 
-# IAM Policy for ECR access (CI - Least Privilege)
-resource "aws_iam_role_policy" "github_actions_ecr" {
-  name = "${var.project_name}-github-actions-ecr-policy"
-  role = aws_iam_role.github_actions.id
+# ========================================
+# Managed Policies (Best Practice)
+# ========================================
+
+# CI Policy - ECR Push/Pull (Least Privilege)
+resource "aws_iam_policy" "github_actions_ci" {
+  name        = "${var.project_name}-github-actions-ci-policy"
+  description = "Least privilege policy for GitHub Actions CI - ECR operations only"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -68,7 +72,7 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
         Resource = "*"
       },
       {
-        Sid    = "ECRRepositoryAccess"
+        Sid    = "ECRImageManagement"
         Effect = "Allow"
         Action = [
           "ecr:BatchCheckLayerAvailability",
@@ -93,15 +97,16 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
       }
     ]
   })
+
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-ci-policy"
+  })
 }
 
-# IAM Policy for S3 access (Removed - not needed for CI/CD)
-# S3 access is handled via IRSA in EKS pods
-
-# IAM Policy for EKS access (CD - Least Privilege)
-resource "aws_iam_role_policy" "github_actions_eks" {
-  name = "${var.project_name}-github-actions-eks-policy"
-  role = aws_iam_role.github_actions.id
+# CD Policy - EKS Deployment (Least Privilege)
+resource "aws_iam_policy" "github_actions_cd" {
+  name        = "${var.project_name}-github-actions-cd-policy"
+  description = "Least privilege policy for GitHub Actions CD - EKS describe only"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -127,4 +132,24 @@ resource "aws_iam_role_policy" "github_actions_eks" {
       }
     ]
   })
+
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-cd-policy"
+  })
+}
+
+# ========================================
+# Policy Attachments
+# ========================================
+
+# Attach CI Policy to Role
+resource "aws_iam_role_policy_attachment" "github_actions_ci" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_ci.arn
+}
+
+# Attach CD Policy to Role
+resource "aws_iam_role_policy_attachment" "github_actions_cd" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_cd.arn
 }
