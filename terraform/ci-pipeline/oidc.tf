@@ -51,7 +51,7 @@ resource "aws_iam_role" "github_actions" {
   })
 }
 
-# IAM Policy for ECR access
+# IAM Policy for ECR access (CI - Least Privilege)
 resource "aws_iam_role_policy" "github_actions_ecr" {
   name = "${var.project_name}-github-actions-ecr-policy"
   role = aws_iam_role.github_actions.id
@@ -79,45 +79,26 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
           "ecr:DescribeRepositories",
-          "ecr:ListImages",
-          "ecr:DescribeImages"
+          "ecr:ListImages"
         ]
-        Resource = aws_ecr_repository.app.arn
-      }
-    ]
-  })
-}
-
-# IAM Policy for S3 access
-resource "aws_iam_role_policy" "github_actions_s3" {
-  name = "${var.project_name}-github-actions-s3-policy"
-  role = aws_iam_role.github_actions.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "S3BucketAccess"
-        Effect = "Allow"
-        Action = [
-          "s3:ListBucket"
-        ]
-        Resource = aws_s3_bucket.images.arn
+        Resource = "arn:aws:ecr:*:*:repository/${var.project_name}*"
       },
       {
-        Sid    = "S3ObjectAccess"
+        Sid    = "STSIdentity"
         Effect = "Allow"
         Action = [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:DeleteObject"
+          "sts:GetCallerIdentity"
         ]
-        Resource = "${aws_s3_bucket.images.arn}/*"
+        Resource = "*"
       }
     ]
   })
 }
 
+# IAM Policy for S3 access (Removed - not needed for CI/CD)
+# S3 access is handled via IRSA in EKS pods
+
+# IAM Policy for EKS access (CD - Least Privilege)
 resource "aws_iam_role_policy" "github_actions_eks" {
   name = "${var.project_name}-github-actions-eks-policy"
   role = aws_iam_role.github_actions.id
@@ -130,40 +111,19 @@ resource "aws_iam_role_policy" "github_actions_eks" {
         Effect = "Allow"
         Action = [
           "eks:DescribeCluster",
-          "eks:ListClusters"
+          "eks:ListClusters",
+          "eks:DescribeNodegroup",
+          "eks:ListNodegroups"
         ]
-        Resource = "*"
+        Resource = "arn:aws:eks:*:*:cluster/${var.project_name}-*"
       },
       {
-        Sid    = "EKSClusterAccess"
+        Sid    = "STSIdentity"
         Effect = "Allow"
         Action = [
-          "eks:AccessKubernetesApi"
+          "sts:GetCallerIdentity"
         ]
-        Resource = "arn:aws:eks:*:${data.aws_caller_identity.current.account_id}:cluster/*"
-      }
-    ]
-  })
-}
-
-# IAM Policy for CloudWatch Logs
-resource "aws_iam_role_policy" "github_actions_logs" {
-  name = "${var.project_name}-github-actions-logs-policy"
-  role = aws_iam_role.github_actions.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "CloudWatchLogs"
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams"
-        ]
-        Resource = "arn:aws:logs:*:*:*"
+        Resource = "*"
       }
     ]
   })
