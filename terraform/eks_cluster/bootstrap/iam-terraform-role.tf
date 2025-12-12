@@ -1,9 +1,7 @@
 # Terraform Execution Role with Least Privilege
-# Replaces: terraform/eks_cluster/bootstrap/iam-terraform-role.tf
 
-locals {
-  terraform_user_arn = "arn:aws:iam::184890426414:user/asaf_aviv"
-}
+# Get current AWS caller identity (user running Terraform)
+data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "terraform_assume_role" {
   statement {
@@ -12,7 +10,7 @@ data "aws_iam_policy_document" "terraform_assume_role" {
 
     principals {
       type        = "AWS"
-      identifiers = [local.terraform_user_arn]
+      identifiers = [data.aws_caller_identity.current.arn]
     }
     
     # OPTIONAL: Add MFA requirement for production
