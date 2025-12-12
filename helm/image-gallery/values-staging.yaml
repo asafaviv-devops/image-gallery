@@ -1,0 +1,24 @@
+#----------------------------------------------
+# Staging Environment Values
+#----------------------------------------------
+
+replicaCount: 2
+
+image:
+  tag: latest
+
+config:
+  s3Bucket: image-gallery-staging-images
+  logLevel: INFO
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::184890426414:role/image-gallery-staging-app-sa-role"

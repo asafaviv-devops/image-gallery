@@ -1,0 +1,24 @@
+#----------------------------------------------
+# Dev Environment Values
+#----------------------------------------------
+
+replicaCount: 1
+
+image:
+  tag: latest
+
+config:
+  s3Bucket: image-gallery-dev-images
+  logLevel: DEBUG
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::184890426414:role/image-gallery-dev-app-sa-role"

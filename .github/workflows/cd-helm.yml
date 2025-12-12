@@ -1,0 +1,183 @@
+name: CD - Deploy to EKS
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Push to ECR"]
+    types:
+      - completed
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      image_tag:
+        description: 'Image tag to deploy'
+        required: false
+        default: 'latest'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  HELM_RELEASE_NAME: image-gallery
+
+jobs:
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+            TAG="${{ github.event.inputs.image_tag }}"
+          else
+            if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+              ENV="prod"
+              TAG="latest"
+            elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+              ENV="dev"
+              TAG="latest"
+            else
+              ENV="dev"
+              TAG="latest"
+            fi
+          fi
+
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "image_tag=$TAG" >> $GITHUB_OUTPUT
+          echo "cluster_name=image-gallery-${ENV}-eks-cluster" >> $GITHUB_OUTPUT
+          echo "📦 Deploying to: $ENV"
+          echo "🏷️  Image tag: $TAG"
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-CD-${{ github.run_id }}
+
+      - name: Check cluster exists
+        run: |
+          if aws eks describe-cluster --name ${{ steps.env.outputs.cluster_name }} &>/dev/null; then
+            echo "✅ Cluster ${{ steps.env.outputs.cluster_name }} exists"
+          else
+            echo "❌ Cluster ${{ steps.env.outputs.cluster_name }} not found!"
+            exit 1
+          fi
+
+      - name: Update kubeconfig
+        run: |
+          CLUSTER_NAME="image-gallery-${{ steps.env.outputs.environment }}-eks-cluster"
+          echo "🔗 Connecting to cluster: $CLUSTER_NAME"
+
+          aws eks update-kubeconfig \
+            --name $CLUSTER_NAME \
+            --region ${{ env.AWS_REGION }}
+
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Deploy with Helm
+        run: |
+          ENV=${{ steps.env.outputs.environment }}
+          TAG=${{ steps.env.outputs.image_tag }}
+          ECR_REPO="${{ secrets.ECR_REPOSITORY_URL }}"
+          S3_BUCKET="${{ secrets.S3_BUCKET_NAME }}"
+          IRSA_ROLE_ARN="${{ secrets.IRSA_ROLE_ARN }}"
+
+          echo "🚀 Deploying to $ENV environment..."
+          echo "📦 Image: $ECR_REPO:$TAG"
+          echo "🪣 S3 Bucket: $S3_BUCKET"
+
+          helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ./helm/image-gallery \
+            --namespace ${{ env.HELM_RELEASE_NAME }}-${{ steps.env.outputs.environment }}
+            --create-namespace \
+            --values ./helm/image-gallery/values-${ENV}.yaml \
+            --set image.repository=$ECR_REPO \
+            --set image.tag=$TAG \
+            --set config.s3Bucket=$S3_BUCKET \
+            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=$IRSA_ROLE_ARN \
+            --wait \
+            --timeout 5m
+
+          echo "✅ Helm deployment completed"
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying deployment..."
+
+          kubectl get deployment -n app -l app.kubernetes.io/name=image-gallery
+          kubectl get pods -n app -l app.kubernetes.io/name=image-gallery
+          kubectl get svc -n app
+
+          READY_PODS=$(kubectl get pods -n app -l app.kubernetes.io/name=image-gallery -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | grep -o "True" | wc -l)
+          TOTAL_PODS=$(kubectl get pods -n app -l app.kubernetes.io/name=image-gallery --no-headers | wc -l)
+
+          echo "📊 Ready pods: $READY_PODS/$TOTAL_PODS"
+
+          if [ "$READY_PODS" -eq "$TOTAL_PODS" ] && [ "$TOTAL_PODS" -gt 0 ]; then
+            echo "✅ All pods are ready!"
+          else
+            echo "❌ Some pods are not ready"
+            kubectl describe pods -n app -l app.kubernetes.io/name=image-gallery
+            exit 1
+          fi
+
+      - name: Get Helm release info
+        run: |
+          echo "📋 Helm release info:"
+          helm list -n app
+          helm status ${{ env.HELM_RELEASE_NAME }} -n app
+
+      - name: Summary
+        run: |
+          ENV=${{ steps.env.outputs.environment }}
+          TAG=${{ steps.env.outputs.image_tag }}
+
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🚀 Helm Deployment Summary
+
+          - **Environment**: \`$ENV\`
+          - **Image Tag**: \`$TAG\`
+          - **Release Name**: \`${{ env.HELM_RELEASE_NAME }}\`
+          - **Namespace**: \`app\`
+          - **Cluster**: \`image-gallery-$ENV-eks-cluster\`
+
+          ### Helm Release
+          \`\`\`
+          $(helm list -n app)
+          \`\`\`
+
+          ### Pods
+          \`\`\`
+          $(kubectl get pods -n app -l app.kubernetes.io/name=image-gallery)
+          \`\`\`
+
+          ### Services
+          \`\`\`
+          $(kubectl get svc -n app)
+          \`\`\`
+          EOF

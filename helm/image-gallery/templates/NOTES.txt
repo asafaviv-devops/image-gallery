@@ -1,0 +1,28 @@
+🎉 Image Gallery has been deployed!
+
+📦 Release: {{ .Release.Name }}
+📍 Namespace: {{ .Release.Namespace }}
+🏷️  Version: {{ .Chart.AppVersion }}
+
+{{- if .Values.ingress.enabled }}
+🌐 Access the application at:
+{{- range $host := .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}
+{{- end }}
+{{- else }}
+
+🔗 Get the application URL by running:
+
+  kubectl port-forward svc/{{ include "image-gallery.fullname" . }} 8080:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+
+  Then visit: http://localhost:8080
+{{- end }}
+
+📊 Check deployment status:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "image-gallery.name" . }}
+  kubectl get svc -n {{ .Release.Namespace }}
+
+📝 View logs:
+
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "image-gallery.name" . }} -f
