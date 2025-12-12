@@ -132,12 +132,12 @@ resource "aws_eks_node_group" "default" {
   subnet_ids      = var.subnets
 
   scaling_config {
-    desired_size = 2
-    max_size     = 3
-    min_size     = 1
+    desired_size = var.node_desired_size
+    max_size     = var.node_max_size
+    min_size     = var.node_min_size
   }
 
-  instance_types = ["t3.medium"]
+  instance_types = var.node_instance_types
 
   tags = merge(local.common_tags, {
     Name = "${local.prefix}-eks-ng"
