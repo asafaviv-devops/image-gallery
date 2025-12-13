@@ -62,43 +62,23 @@ module "eks" {
 }
 
 #----------------------------------------------
-# Kubernetes Provider (connects to EKS cluster)
+# Environment Module (Kubernetes + Namespace)
 #----------------------------------------------
-provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+module "environment" {
+  source = "../../modules/environment"
 
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args = [
-      "eks",
-      "get-token",
-      "--cluster-name",
-      module.eks.cluster_name,
-      "--role-arn",
-      var.role_arn
-    ]
-  }
+  # EKS Cluster Info
+  cluster_endpoint       = module.eks.cluster_endpoint
+  cluster_ca_certificate = module.eks.cluster_ca_certificate
+  cluster_name           = module.eks.cluster_name
+  cluster_id             = module.eks.cluster_name
+
+  # Terraform Role
+  terraform_role_arn = var.role_arn
+
+  # Application Config
+  app_name       = var.app_name
+  env            = var.env
+  namespace_name = var.namespace_name
 }
 
-#----------------------------------------------
-# Kubernetes Namespace (Infrastructure as Code)
-#----------------------------------------------
-locals {
-  namespace = var.namespace_name != "" ? var.namespace_name : var.app_name
-}
-
-resource "kubernetes_namespace" "app" {
-  metadata {
-    name = local.namespace
-
-    labels = {
-      name        = local.namespace
-      environment = var.env
-      managed-by  = "terraform"
-    }
-  }
-
-  depends_on = [module.eks]
-}
