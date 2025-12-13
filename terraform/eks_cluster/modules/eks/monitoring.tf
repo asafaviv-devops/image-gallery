@@ -185,8 +185,8 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "metric"
         properties = {
           metrics = [
-            ["ContainerInsights", "node_cpu_utilization", { stat = "Average" }],
-            [".", "node_cpu_usage_total", { stat = "Average" }]
+            ["ContainerInsights", "node_cpu_utilization", "ClusterName", aws_eks_cluster.this.name],
+            [".", "node_cpu_usage_total", ".", "."]
           ]
           period  = 300
           stat    = "Average"
@@ -208,7 +208,7 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "metric"
         properties = {
           metrics = [
-            ["ContainerInsights", "node_memory_utilization", { stat = "Average" }]
+            ["ContainerInsights", "node_memory_utilization", "ClusterName", aws_eks_cluster.this.name]
           ]
           period = 300
           stat   = "Average"
@@ -230,7 +230,7 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "metric"
         properties = {
           metrics = [
-            ["ContainerInsights", "pod_cpu_utilization", { stat = "Average" }]
+            ["ContainerInsights", "pod_cpu_utilization", "ClusterName", aws_eks_cluster.this.name]
           ]
           period = 300
           stat   = "Average"
@@ -242,7 +242,7 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "metric"
         properties = {
           metrics = [
-            ["ContainerInsights", "pod_memory_utilization", { stat = "Average" }]
+            ["ContainerInsights", "pod_memory_utilization", "ClusterName", aws_eks_cluster.this.name]
           ]
           period = 300
           stat   = "Average"
@@ -254,7 +254,7 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "metric"
         properties = {
           metrics = [
-            ["ContainerInsights", "pod_number_of_container_restarts", { stat = "Sum" }]
+            ["ContainerInsights", "pod_number_of_container_restarts", "ClusterName", aws_eks_cluster.this.name]
           ]
           period = 300
           stat   = "Sum"
@@ -266,8 +266,8 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "metric"
         properties = {
           metrics = [
-            ["ContainerInsights", "cluster_failed_node_count", { stat = "Average" }],
-            [".", "cluster_node_count", { stat = "Average" }]
+            ["ContainerInsights", "cluster_failed_node_count", "ClusterName", aws_eks_cluster.this.name],
+            [".", "cluster_node_count", ".", "."]
           ]
           period = 300
           stat   = "Average"
@@ -279,8 +279,8 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "metric"
         properties = {
           metrics = [
-            ["ContainerInsights", "pod_network_rx_bytes", { stat = "Average" }],
-            [".", "pod_network_tx_bytes", { stat = "Average" }]
+            ["ContainerInsights", "pod_network_rx_bytes", "ClusterName", aws_eks_cluster.this.name],
+            [".", "pod_network_tx_bytes", ".", "."]
           ]
           period = 300
           stat   = "Average"
