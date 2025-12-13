@@ -42,7 +42,8 @@ resource "aws_subnet" "public" {
   availability_zone       = data.aws_availability_zones.azs.names[tonumber(each.key)]
 
   tags = merge(local.common_tags, {
-    Name = "${local.prefix}-public-subnet-${each.key}"
+    Name                     = "${local.prefix}-public-subnet-${each.key}"
+    "kubernetes.io/role/elb" = "1"
   })
 }
 
@@ -56,7 +57,8 @@ resource "aws_subnet" "private" {
   availability_zone = data.aws_availability_zones.azs.names[tonumber(each.key)]
 
   tags = merge(local.common_tags, {
-    Name = "${local.prefix}-private-subnet-${each.key}"
+    Name                              = "${local.prefix}-private-subnet-${each.key}"
+    "kubernetes.io/role/internal-elb" = "1"
   })
 }
 
