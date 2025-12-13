@@ -132,7 +132,7 @@ affinity: {}
 # Prometheus Metrics
 #----------------------------------------------
 metrics:
-  enabled: false
+  enabled: true
   port: http
   path: /metrics
   interval: 30s
