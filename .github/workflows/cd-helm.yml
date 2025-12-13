@@ -113,7 +113,7 @@ jobs:
           echo "🪣 S3 Bucket: $S3_BUCKET"
 
           helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ./helm/image-gallery \
-            --namespace ${{ env.HELM_RELEASE_NAME }}-${{ steps.env.outputs.environment }}
+            --namespace ${{ env.HELM_RELEASE_NAME }}
             --create-namespace \
             --values ./helm/image-gallery/values-${ENV}.yaml \
             --set image.repository=$ECR_REPO \
