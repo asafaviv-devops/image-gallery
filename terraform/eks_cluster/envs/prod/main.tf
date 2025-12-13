@@ -46,6 +46,7 @@ module "eks" {
   # Access
   admin_role_arn          = var.admin_role_arn
   github_actions_role_arn = var.github_actions_role_arn
+  terraform_role_arn      = var.role_arn
 
   # Node Group
   node_instance_types = var.node_instance_types
