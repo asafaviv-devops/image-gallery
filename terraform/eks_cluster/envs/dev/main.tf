@@ -73,6 +73,10 @@ module "eks" {
   # AWS Load Balancer Controller
   enable_alb_controller = true
 
+  # Monitoring
+  enable_monitoring = true
+  alert_email       = var.alert_email
+
   tags = {}
 }
 
@@ -83,4 +87,19 @@ module "eks" {
 output "alb_controller_role_arn" {
   value       = module.eks.alb_controller_role_arn
   description = "ARN of the IAM role for AWS Load Balancer Controller"
+}
+
+output "cloudwatch_dashboard_url" {
+  value       = module.eks.cloudwatch_dashboard_url
+  description = "URL to CloudWatch Dashboard"
+}
+
+output "sns_topic_arn" {
+  value       = module.eks.sns_topic_arn
+  description = "ARN of SNS topic for alerts"
+}
+
+output "cloudwatch_log_groups" {
+  value       = module.eks.cloudwatch_log_groups
+  description = "CloudWatch log group names"
 }

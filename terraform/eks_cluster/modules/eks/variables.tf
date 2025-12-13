@@ -111,3 +111,18 @@ variable "enable_alb_controller" {
   type        = bool
   default     = false
 }
+
+#----------------------------------------------
+# Monitoring
+#----------------------------------------------
+variable "enable_monitoring" {
+  description = "Enable CloudWatch Container Insights and monitoring"
+  type        = bool
+  default     = false
+}
+
+variable "alert_email" {
+  description = "Email address for CloudWatch alarm notifications"
+  type        = string
+  default     = ""
+}

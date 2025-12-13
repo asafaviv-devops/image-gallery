@@ -82,3 +82,12 @@ variable "node_min_size" {
 }
 
 #----------------------------------------------
+# Monitoring
+#----------------------------------------------
+variable "alert_email" {
+  description = "Email address for CloudWatch alarm notifications"
+  type        = string
+  default     = ""
+}
+
+#----------------------------------------------
