@@ -76,12 +76,6 @@ variable "github_actions_role_arn" {
   default     = ""
 }
 
-variable "terraform_role_arn" {
-  description = "IAM role ARN for Terraform execution (needs K8s access to create namespaces)"
-  type        = string
-  default     = ""
-}
-
 #----------------------------------------------
 # Node Group
 #----------------------------------------------

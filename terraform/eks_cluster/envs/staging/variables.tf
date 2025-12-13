@@ -82,10 +82,3 @@ variable "node_min_size" {
 }
 
 #----------------------------------------------
-# Kubernetes Namespace
-#----------------------------------------------
-variable "namespace_name" {
-  description = "Kubernetes namespace name for application deployment (defaults to app_name if not specified)"
-  type        = string
-  default     = ""
-}

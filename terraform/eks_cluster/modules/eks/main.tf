@@ -17,10 +17,6 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.0"
-    }
   }
 }
 
@@ -93,27 +89,6 @@ resource "aws_eks_access_entry" "github_actions" {
 resource "aws_eks_access_policy_association" "github_actions" {
   cluster_name  = aws_eks_cluster.this.name
   principal_arn = aws_eks_access_entry.github_actions.principal_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-  access_scope {
-    type = "cluster"
-  }
-}
-
-#----------------------------------------------
-# Terraform Execution Role Access
-#----------------------------------------------
-resource "aws_eks_access_entry" "terraform" {
-  count         = var.terraform_role_arn != "" ? 1 : 0
-  cluster_name  = aws_eks_cluster.this.name
-  principal_arn = var.terraform_role_arn
-  type          = "STANDARD"
-}
-
-resource "aws_eks_access_policy_association" "terraform" {
-  count         = var.terraform_role_arn != "" ? 1 : 0
-  cluster_name  = aws_eks_cluster.this.name
-  principal_arn = aws_eks_access_entry.terraform[0].principal_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
