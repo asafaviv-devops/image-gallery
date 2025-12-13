@@ -38,4 +38,4 @@ node_min_size       = 1
 #----------------------------------------------
 # Monitoring & Alerts
 #----------------------------------------------
-alert_email = "your-email@example.com"  # שנה לכתובת המייל שלך
+alert_email = "asaf.aviv21@gmail.com"  
