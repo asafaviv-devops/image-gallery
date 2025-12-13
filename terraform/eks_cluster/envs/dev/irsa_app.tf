@@ -1,5 +1,5 @@
 locals {
-  sa_namespace = "app"
+  sa_namespace = "image-gallery"  # ✅ תוקן!
   sa_name      = "app-sa"
 
   prefix = "${var.app_name}-${var.env}"
@@ -44,7 +44,7 @@ resource "aws_iam_role" "app_sa_irsa_role" {
 
 resource "aws_iam_role_policy_attachment" "app_s3_read" {
   role       = aws_iam_role.app_sa_irsa_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"  # ✅ Full access!
 }
 
 output "app_sa_irsa_role_arn" {
