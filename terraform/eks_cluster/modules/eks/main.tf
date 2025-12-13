@@ -85,10 +85,23 @@ resource "aws_eks_access_entry" "github_actions" {
   type          = "STANDARD"
 }
 
-resource "aws_eks_access_policy_association" "github_actions" {
+# Namespace-scoped admin for deployments (Least Privilege)
+resource "aws_eks_access_policy_association" "github_actions_namespace" {
   cluster_name  = aws_eks_cluster.this.name
   principal_arn = aws_eks_access_entry.github_actions.principal_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+
+  access_scope {
+    type       = "namespace"
+    namespaces = ["image-gallery"]
+  }
+}
+
+# Cluster-level view for kubectl cluster-info, get nodes (Read-only)
+resource "aws_eks_access_policy_association" "github_actions_cluster_view" {
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = aws_eks_access_entry.github_actions.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
 
   access_scope {
     type = "cluster"
