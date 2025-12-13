@@ -103,7 +103,7 @@ resource "aws_eks_addon" "cloudwatch_observability" {
   )
 
   depends_on = [
-    aws_eks_node_group.this,
+    aws_eks_node_group.default,
     aws_iam_role_policy_attachment.node_cloudwatch_agent,
     aws_iam_role_policy_attachment.node_cloudwatch_logs
   ]
