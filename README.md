@@ -134,14 +134,63 @@ docker --version
 
 ## 🚀 Quick Start
 
-### 1. Clone Repository
+### Option A: Automated Setup (Recommended)
+
+Use the provided setup scripts for a guided installation:
+
+#### 1. Bootstrap Terraform State Backend
+
+```bash
+cd terraform/ci-pipeline/bootstrap
+chmod +x setup-bootstrap.sh
+./setup-bootstrap.sh
+```
+
+This creates:
+- S3 bucket for Terraform state
+- DynamoDB table for state locking
+
+#### 2. Setup CI/CD Pipeline
+
+```bash
+cd ../  # Back to ci-pipeline directory
+chmod +x setup-ci.sh
+./setup-ci.sh
+```
+
+This will:
+- ✅ Check prerequisites (Terraform, AWS CLI)
+- ✅ Verify AWS credentials
+- ✅ Prompt for configuration (GitHub repo, ECR name, etc.)
+- ✅ Create ECR repository
+- ✅ Create GitHub Actions OIDC role
+- ✅ Display GitHub Secrets to configure
+
+#### 3. Sync Secrets to GitHub
+
+```bash
+chmod +x sync-to-github.sh
+./sync-to-github.sh
+```
+
+This automatically sets GitHub Secrets:
+- `AWS_ROLE_ARN`
+- `ECR_REPOSITORY`
+- `AWS_REGION`
+- `AWS_ACCOUNT_ID`
+
+**Or manually add secrets** at: `https://github.com/YOUR_ORG/YOUR_REPO/settings/secrets/actions`
+
+### Option B: Manual Setup
+
+#### 1. Clone Repository
 
 ```bash
 git clone https://github.com/asafaviv-devops/image-gallery.git
 cd image-gallery
 ```
 
-### 2. Configure Terraform
+#### 2. Configure Terraform
 
 ```bash
 cd terraform/eks_cluster/envs/dev
@@ -230,6 +279,15 @@ image-gallery/
 │           └── servicemonitor.yaml   # Prometheus metrics
 │
 ├── terraform/
+│   ├── ci-pipeline/                  # CI/CD Infrastructure
+│   │   ├── setup-ci.sh               # 🚀 Automated CI setup script
+│   │   ├── sync-to-github.sh         # 🔄 Sync secrets to GitHub
+│   │   ├── bootstrap/
+│   │   │   └── setup-bootstrap.sh    # 📦 Setup Terraform backend
+│   │   ├── main.tf                   # ECR, IAM roles for GitHub Actions
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   │
 │   └── eks_cluster/
 │       ├── modules/
 │       │   ├── network/              # VPC, Subnets, NAT
