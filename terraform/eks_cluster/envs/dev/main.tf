@@ -85,12 +85,16 @@ provider "kubernetes" {
 #----------------------------------------------
 # Kubernetes Namespace (Infrastructure as Code)
 #----------------------------------------------
+locals {
+  namespace = var.namespace_name != "" ? var.namespace_name : var.app_name
+}
+
 resource "kubernetes_namespace" "app" {
   metadata {
-    name = "image-gallery"
+    name = local.namespace
 
     labels = {
-      name        = "image-gallery"
+      name        = local.namespace
       environment = var.env
       managed-by  = "terraform"
     }
