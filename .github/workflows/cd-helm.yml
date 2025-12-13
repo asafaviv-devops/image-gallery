@@ -119,7 +119,7 @@ jobs:
 
           helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ./helm/image-gallery \
             --create-namespace \
-            --namespace ${{ env.HELM_RELEASE_NAME }} \:
+            --namespace ${{ env.HELM_RELEASE_NAME }} \
             --values ./helm/image-gallery/values.yaml \
             --values ./helm/image-gallery/values-${ENV}.yaml \
             --set image.repository=$ECR_REPO \

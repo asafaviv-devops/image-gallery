@@ -1,6 +1,6 @@
 locals {
-  sa_namespace = "app"
-  sa_name      = "app-sa"
+  sa_namespace = var.app_name
+  sa_name      = var.app_name
 
   prefix = "${var.app_name}-${var.env}"
 
