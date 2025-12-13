@@ -316,3 +316,39 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
   role       = aws_iam_role.alb_controller[0].name
   policy_arn = aws_iam_policy.alb_controller[0].arn
 }
+
+# Install AWS Load Balancer Controller via Helm
+resource "helm_release" "aws_load_balancer_controller" {
+  count = var.enable_alb_controller ? 1 : 0
+
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = local.alb_controller_sa_namespace
+  version    = "1.8.0"  # Specify version for stability
+
+  set {
+    name  = "clusterName"
+    value = aws_eks_cluster.this.name
+  }
+
+  set {
+    name  = "serviceAccount.create"
+    value = "true"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = local.alb_controller_sa_name
+  }
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.alb_controller[0].arn
+  }
+
+  # Wait for IRSA role to be ready
+  depends_on = [
+    aws_iam_role_policy_attachment.alb_controller
+  ]
+}
