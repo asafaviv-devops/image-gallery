@@ -110,8 +110,7 @@ resource "helm_release" "kube_prometheus_stack" {
           default = {
             # Image Gallery Application Dashboard
             image-gallery-app = {
-              gnetId = 0
-              json   = jsonencode({
+              json = jsonencode({
                 annotations = {
                   list = []
                 }
