@@ -35,3 +35,8 @@ node_desired_size   = 3
 node_max_size       = 6
 node_min_size       = 2
 
+#----------------------------------------------
+# Monitoring & Alerts
+#----------------------------------------------
+alert_email = "your-email@example.com"  # שנה לכתובת המייל שלך
+
