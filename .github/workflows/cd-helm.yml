@@ -125,8 +125,8 @@ jobs:
             --set image.tag=$TAG \
             --set config.s3Bucket=$S3_BUCKET \
             --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=$IRSA_ROLE_ARN \
-            --wait \
-            --timeout 5m
+            --wait 
+            
 
           echo "✅ Helm deployment completed"
 
