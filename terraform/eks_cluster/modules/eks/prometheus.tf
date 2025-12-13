@@ -28,19 +28,8 @@ resource "helm_release" "kube_prometheus_stack" {
         prometheusSpec = {
           retention = var.env == "prod" ? "30d" : "15d"
 
-          storageSpec = {
-            volumeClaimTemplate = {
-              spec = {
-                storageClassName = "gp2"
-                accessModes      = ["ReadWriteOnce"]
-                resources = {
-                  requests = {
-                    storage = var.env == "prod" ? "50Gi" : "20Gi"
-                  }
-                }
-              }
-            }
-          }
+          # No persistent storage - use emptyDir (ephemeral)
+          # Data will be lost on pod restart
 
           # Service Monitor Selector - scrape all ServiceMonitors
           serviceMonitorSelectorNilUsesHelmValues = false
@@ -83,9 +72,7 @@ resource "helm_release" "kube_prometheus_stack" {
         }
 
         persistence = {
-          enabled          = true
-          storageClassName = "gp2"
-          size             = "10Gi"
+          enabled = false  # No persistent storage - use emptyDir
         }
 
         resources = {
@@ -283,21 +270,7 @@ resource "helm_release" "kube_prometheus_stack" {
       # Alert Manager
       alertmanager = {
         enabled = true
-        alertmanagerSpec = {
-          storage = {
-            volumeClaimTemplate = {
-              spec = {
-                storageClassName = "gp2"
-                accessModes      = ["ReadWriteOnce"]
-                resources = {
-                  requests = {
-                    storage = "10Gi"
-                  }
-                }
-              }
-            }
-          }
-        }
+        # No persistent storage - use emptyDir (ephemeral)
       }
 
       # Node Exporter
