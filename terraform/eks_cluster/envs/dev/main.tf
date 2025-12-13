@@ -58,6 +58,17 @@ module "eks" {
   endpoint_public_access  = true
   public_access_cidrs     = ["0.0.0.0/0"]
 
+  # AWS Load Balancer Controller
+  enable_alb_controller = true
+
   tags = {}
 }
 
+
+#----------------------------------------------
+# Outputs
+#----------------------------------------------
+output "alb_controller_role_arn" {
+  value       = module.eks.alb_controller_role_arn
+  description = "ARN of the IAM role for AWS Load Balancer Controller"
+}

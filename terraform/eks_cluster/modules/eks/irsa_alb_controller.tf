@@ -3,20 +3,29 @@
 locals {
   alb_controller_sa_namespace = "kube-system"
   alb_controller_sa_name      = "aws-load-balancer-controller"
+
+  # OIDC issuer without https://
+  oidc_issuer_no_https = replace(
+    aws_eks_cluster.this.identity[0].oidc[0].issuer,
+    "https://",
+    ""
+  )
 }
 
 data "aws_iam_policy_document" "alb_controller_trust" {
+  count = var.enable_alb_controller ? 1 : 0
+
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
       type        = "Federated"
-      identifiers = [module.eks.oidc_provider_arn]
+      identifiers = [aws_iam_openid_connect_provider.oidc.arn]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${local.issuer_no_https}:sub"
+      variable = "${local.oidc_issuer_no_https}:sub"
       values = [
         "system:serviceaccount:${local.alb_controller_sa_namespace}:${local.alb_controller_sa_name}"
       ]
@@ -24,26 +33,30 @@ data "aws_iam_policy_document" "alb_controller_trust" {
 
     condition {
       test     = "StringEquals"
-      variable = "${local.issuer_no_https}:aud"
+      variable = "${local.oidc_issuer_no_https}:aud"
       values   = ["sts.amazonaws.com"]
     }
   }
 }
 
 resource "aws_iam_role" "alb_controller" {
-  name               = "${local.prefix}-alb-controller-role"
-  assume_role_policy = data.aws_iam_policy_document.alb_controller_trust.json
+  count = var.enable_alb_controller ? 1 : 0
 
-  tags = {
-    App       = var.app_name
-    Env       = var.env
-    ManagedBy = "terraform"
-    Name      = "${local.prefix}-alb-controller-role"
-  }
+  name               = "${local.prefix}-alb-controller-role"
+  assume_role_policy = data.aws_iam_policy_document.alb_controller_trust[0].json
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.prefix}-alb-controller-role"
+    }
+  )
 }
 
 # AWS Load Balancer Controller IAM Policy
 resource "aws_iam_policy" "alb_controller" {
+  count = var.enable_alb_controller ? 1 : 0
+
   name        = "${local.prefix}-alb-controller-policy"
   description = "IAM policy for AWS Load Balancer Controller"
 
@@ -289,19 +302,17 @@ resource "aws_iam_policy" "alb_controller" {
     ]
   })
 
-  tags = {
-    App       = var.app_name
-    Env       = var.env
-    ManagedBy = "terraform"
-  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.prefix}-alb-controller-policy"
+    }
+  )
 }
 
 resource "aws_iam_role_policy_attachment" "alb_controller" {
-  role       = aws_iam_role.alb_controller.name
-  policy_arn = aws_iam_policy.alb_controller.arn
-}
+  count = var.enable_alb_controller ? 1 : 0
 
-output "alb_controller_role_arn" {
-  value       = aws_iam_role.alb_controller.arn
-  description = "ARN of the IAM role for AWS Load Balancer Controller"
+  role       = aws_iam_role.alb_controller[0].name
+  policy_arn = aws_iam_policy.alb_controller[0].arn
 }

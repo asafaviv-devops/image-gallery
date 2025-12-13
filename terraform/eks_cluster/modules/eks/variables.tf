@@ -102,3 +102,12 @@ variable "node_min_size" {
   type        = number
   default     = 1
 }
+
+#----------------------------------------------
+# AWS Load Balancer Controller
+#----------------------------------------------
+variable "enable_alb_controller" {
+  description = "Enable AWS Load Balancer Controller IRSA role"
+  type        = bool
+  default     = false
+}
