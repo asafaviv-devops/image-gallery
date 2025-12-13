@@ -46,11 +46,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "image-gallery.fullname" . }}-config
                   key: AWS_REGION
-            - name: S3_BUCKET
+            - name: S3_BUCKET_NAME
               valueFrom:
                 configMapKeyRef:
                   name: {{ include "image-gallery.fullname" . }}-config
-                  key: S3_BUCKET
+                  key: S3_BUCKET_NAME
             - name: LOG_LEVEL
               valueFrom:
                 configMapKeyRef:
