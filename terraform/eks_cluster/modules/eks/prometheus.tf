@@ -31,7 +31,8 @@ resource "helm_release" "kube_prometheus_stack" {
           storageSpec = {
             volumeClaimTemplate = {
               spec = {
-                accessModes = ["ReadWriteOnce"]
+                storageClassName = "gp2"
+                accessModes      = ["ReadWriteOnce"]
                 resources = {
                   requests = {
                     storage = var.env == "prod" ? "50Gi" : "20Gi"
@@ -82,8 +83,9 @@ resource "helm_release" "kube_prometheus_stack" {
         }
 
         persistence = {
-          enabled = true
-          size    = "10Gi"
+          enabled          = true
+          storageClassName = "gp2"
+          size             = "10Gi"
         }
 
         resources = {
@@ -285,7 +287,8 @@ resource "helm_release" "kube_prometheus_stack" {
           storage = {
             volumeClaimTemplate = {
               spec = {
-                accessModes = ["ReadWriteOnce"]
+                storageClassName = "gp2"
+                accessModes      = ["ReadWriteOnce"]
                 resources = {
                   requests = {
                     storage = "10Gi"
