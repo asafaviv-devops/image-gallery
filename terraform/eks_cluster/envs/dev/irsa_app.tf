@@ -1,6 +1,6 @@
 locals {
-  sa_namespace = "image-gallery"  # ✅ תוקן!
-  sa_name      = "app-sa"
+  sa_namespace = var.app_name  # ✅ גנרי - uses app_name variable
+  sa_name      = "${var.app_name}-sa"  # ✅ גנרי - dynamically generated
 
   prefix = "${var.app_name}-${var.env}"
 
