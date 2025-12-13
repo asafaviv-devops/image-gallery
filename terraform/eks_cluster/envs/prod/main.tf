@@ -10,6 +10,18 @@ provider "aws" {
   }
 }
 
+provider "helm" {
+  kubernetes = {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+    exec = {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", "us-east-1"]
+    }
+  }
+}
+
 #----------------------------------------------
 # Network Module
 #----------------------------------------------
@@ -58,6 +70,17 @@ module "eks" {
   endpoint_public_access  = true
   public_access_cidrs     = ["0.0.0.0/0"]
 
+  # AWS Load Balancer Controller
+  enable_alb_controller = true
+
   tags = {}
 }
 
+
+#----------------------------------------------
+# Outputs
+#----------------------------------------------
+output "alb_controller_role_arn" {
+  value       = module.eks.alb_controller_role_arn
+  description = "ARN of the IAM role for AWS Load Balancer Controller"
+}

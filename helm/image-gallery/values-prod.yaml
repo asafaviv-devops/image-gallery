@@ -11,6 +11,22 @@ config:
   s3Bucket: image-gallery-prod-images
   logLevel: WARNING
 
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: Prefix
+
 resources:
   requests:
     cpu: 200m
