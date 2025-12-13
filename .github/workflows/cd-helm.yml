@@ -100,10 +100,10 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Ensure namespace exists
-        run: |
-          kubectl create namespace ${{ env.HELM_RELEASE_NAME }} --dry-run=client -o yaml | kubectl apply -f -
-          echo "✅ Namespace ${{ env.HELM_RELEASE_NAME }} ready"
+#      - name: Ensure namespace exists
+#        run: |
+#          kubectl create namespace ${{ env.HELM_RELEASE_NAME }} --dry-run=client -o yaml | kubectl apply -f -
+#          echo "✅ Namespace ${{ env.HELM_RELEASE_NAME }} ready"
 
       - name: Deploy with Helm
         run: |
@@ -118,6 +118,7 @@ jobs:
           echo "🪣 S3 Bucket: $S3_BUCKET"
 
           helm upgrade --install ${{ env.HELM_RELEASE_NAME }} ./helm/image-gallery \
+            --create-namespace \
             --namespace ${{ env.HELM_RELEASE_NAME }} \
             --values ./helm/image-gallery/values-${ENV}.yaml \
             --set image.repository=$ECR_REPO \
