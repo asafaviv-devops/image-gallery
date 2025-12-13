@@ -26,7 +26,7 @@ locals {
   namespace_name = var.namespace_name != "" ? var.namespace_name : var.app_name
 }
 
-resource "kubernetes_namespace" "app" {
+resource "kubernetes_namespace_v1" "app" {
   metadata {
     name = local.namespace_name
 
