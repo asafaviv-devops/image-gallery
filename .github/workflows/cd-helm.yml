@@ -129,12 +129,12 @@ jobs:
         run: |
           echo "🔍 Verifying deployment..."
 
-          kubectl get deployment -n app -l app.kubernetes.io/name=image-gallery
-          kubectl get pods -n app -l app.kubernetes.io/name=image-gallery
-          kubectl get svc -n app
+          kubectl get deployment -n ${{ env.HELM_RELEASE_NAME }} -l app.kubernetes.io/name=image-gallery
+          kubectl get pods -n ${{ env.HELM_RELEASE_NAME }} -l app.kubernetes.io/name=image-gallery
+          kubectl get svc -n ${{ env.HELM_RELEASE_NAME }}
 
-          READY_PODS=$(kubectl get pods -n app -l app.kubernetes.io/name=image-gallery -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | grep -o "True" | wc -l)
-          TOTAL_PODS=$(kubectl get pods -n app -l app.kubernetes.io/name=image-gallery --no-headers | wc -l)
+          READY_PODS=$(kubectl get pods -n ${{ env.HELM_RELEASE_NAME }} -l app.kubernetes.io/name=image-gallery -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | grep -o "True" | wc -l)
+          TOTAL_PODS=$(kubectl get pods -n ${{ env.HELM_RELEASE_NAME }} -l app.kubernetes.io/name=image-gallery --no-headers | wc -l)
 
           echo "📊 Ready pods: $READY_PODS/$TOTAL_PODS"
 
@@ -142,15 +142,15 @@ jobs:
             echo "✅ All pods are ready!"
           else
             echo "❌ Some pods are not ready"
-            kubectl describe pods -n app -l app.kubernetes.io/name=image-gallery
+            kubectl describe pods -n ${{ env.HELM_RELEASE_NAME }} -l app.kubernetes.io/name=image-gallery
             exit 1
           fi
 
       - name: Get Helm release info
         run: |
           echo "📋 Helm release info:"
-          helm list -n app
-          helm status ${{ env.HELM_RELEASE_NAME }} -n app
+          helm list -n ${{ env.HELM_RELEASE_NAME }}
+          helm status ${{ env.HELM_RELEASE_NAME }} -n ${{ env.HELM_RELEASE_NAME }}
 
       - name: Summary
         run: |
@@ -163,21 +163,21 @@ jobs:
           - **Environment**: \`$ENV\`
           - **Image Tag**: \`$TAG\`
           - **Release Name**: \`${{ env.HELM_RELEASE_NAME }}\`
-          - **Namespace**: \`app\`
+          - **Namespace**: \`${{ env.HELM_RELEASE_NAME }}\`
           - **Cluster**: \`image-gallery-$ENV-eks-cluster\`
 
           ### Helm Release
           \`\`\`
-          $(helm list -n app)
+          $(helm list -n ${{ env.HELM_RELEASE_NAME }})
           \`\`\`
 
           ### Pods
           \`\`\`
-          $(kubectl get pods -n app -l app.kubernetes.io/name=image-gallery)
+          $(kubectl get pods -n ${{ env.HELM_RELEASE_NAME }} -l app.kubernetes.io/name=image-gallery)
           \`\`\`
 
           ### Services
           \`\`\`
-          $(kubectl get svc -n app)
+          $(kubectl get svc -n ${{ env.HELM_RELEASE_NAME }})
           \`\`\`
           EOF
