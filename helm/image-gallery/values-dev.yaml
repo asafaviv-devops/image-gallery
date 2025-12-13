@@ -11,6 +11,9 @@ config:
   s3Bucket: image-gallery-dev-images
   logLevel: DEBUG
 
+service:
+  type: LoadBalancer
+
 resources:
   requests:
     cpu: 50m
