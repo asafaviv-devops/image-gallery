@@ -90,7 +90,8 @@ jobs:
 
           aws eks update-kubeconfig \
             --name $CLUSTER_NAME \
-            --region ${{ env.AWS_REGION }}
+            --region ${{ env.AWS_REGION }} \
+            --role-arn ${{ secrets.AWS_ROLE_ARN }}
 
           kubectl cluster-info
           kubectl get nodes
