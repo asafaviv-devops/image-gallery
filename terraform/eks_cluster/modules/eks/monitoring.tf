@@ -292,7 +292,7 @@ resource "aws_cloudwatch_dashboard" "eks" {
         type = "log"
         properties = {
           query   = <<-EOT
-            SOURCE '/aws/eks/${aws_eks_cluster.this.name}/application'
+            SOURCE '/aws/containerinsights/${aws_eks_cluster.this.name}/application'
             | fields @timestamp, @message
             | filter @message like /ERROR/ or @message like /error/
             | sort @timestamp desc
