@@ -312,13 +312,6 @@ resource "helm_release" "kube_prometheus_stack" {
   depends_on = [
     aws_eks_node_group.default
   ]
-
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${local.prefix}-prometheus-stack"
-    }
-  )
 }
 
 #----------------------------------------------
