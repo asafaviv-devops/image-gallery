@@ -333,6 +333,10 @@ resource "helm_release" "aws_load_balancer_controller" {
       value = aws_eks_cluster.this.name
     },
     {
+      name  = "vpcId"
+      value = var.vpc_id
+    },
+    {
       name  = "serviceAccount.create"
       value = "true"
     },
