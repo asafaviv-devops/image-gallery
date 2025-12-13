@@ -8,9 +8,10 @@ github_actions_role_arn = "arn:aws:iam::184890426414:role/image-gallery-github-a
 #----------------------------------------------
 # Naming
 #----------------------------------------------
-app_name     = "image-gallery"
-env          = "dev"
-cluster_name = "image-gallery"
+app_name       = "image-gallery"
+env            = "dev"
+cluster_name   = "image-gallery"
+namespace_name = ""  # Empty = uses app_name ("image-gallery")
 
 #----------------------------------------------
 # Network
