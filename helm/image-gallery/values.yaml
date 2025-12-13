@@ -22,7 +22,7 @@ replicaCount: 2
 #----------------------------------------------
 serviceAccount:
   create: true
-  name: app-sa
+  name: ""  # Empty = uses fullname (e.g., "image-gallery-sa")
   annotations:
     eks.amazonaws.com/role-arn: ""
 
