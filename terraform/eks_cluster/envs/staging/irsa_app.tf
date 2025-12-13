@@ -4,6 +4,9 @@ locals {
 
   prefix = "${var.app_name}-${var.env}"
 
+  # Generic S3 bucket name - calculated from app_name and env
+  s3_bucket_name = "${var.app_name}-${var.env}-images"
+
   issuer_no_https = replace(
     module.eks.cluster_oidc_issuer,
     "https://",
@@ -42,12 +45,50 @@ resource "aws_iam_role" "app_sa_irsa_role" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "app_s3_read" {
+# Least privilege S3 policy - scoped to specific bucket only
+data "aws_iam_policy_document" "s3_access" {
+  statement {
+    sid    = "ListBucket"
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [
+      "arn:aws:s3:::${local.s3_bucket_name}"
+    ]
+  }
+
+  statement {
+    sid    = "ObjectAccess"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+    resources = [
+      "arn:aws:s3:::${local.s3_bucket_name}/*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "app_s3_access" {
+  name        = "${local.prefix}-s3-access"
+  description = "Least privilege S3 access for ${var.app_name} in ${var.env}"
+  policy      = data.aws_iam_policy_document.s3_access.json
+
+  tags = {
+    App       = var.app_name
+    Env       = var.env
+    ManagedBy = "terraform"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "app_s3_access" {
   role       = aws_iam_role.app_sa_irsa_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  policy_arn = aws_iam_policy.app_s3_access.arn
 }
 
 output "app_sa_irsa_role_arn" {
   value = aws_iam_role.app_sa_irsa_role.arn
 }
-

@@ -34,8 +34,3 @@ node_instance_types = ["t3.medium"]
 node_desired_size   = 1
 node_max_size       = 2
 node_min_size       = 1
-
-#----------------------------------------------
-# S3
-#----------------------------------------------
-s3_bucket_name = "image-gallery-dev-images"

@@ -80,11 +80,3 @@ variable "node_min_size" {
   description = "Minimum number of worker nodes"
   type        = number
 }
-
-#----------------------------------------------
-# S3
-#----------------------------------------------
-variable "s3_bucket_name" {
-  description = "S3 bucket name for application storage"
-  type        = string
-}

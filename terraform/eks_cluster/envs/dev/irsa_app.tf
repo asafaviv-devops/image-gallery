@@ -1,8 +1,11 @@
 locals {
-  sa_namespace = var.app_name  
-  sa_name      = var.app_name 
+  sa_namespace = var.app_name
+  sa_name      = var.app_name
 
   prefix = "${var.app_name}-${var.env}"
+
+  # Generic S3 bucket name - calculated from app_name and env
+  s3_bucket_name = "${var.app_name}-${var.env}-images"
 
   issuer_no_https = replace(
     module.eks.cluster_oidc_issuer,
@@ -51,7 +54,7 @@ data "aws_iam_policy_document" "s3_access" {
       "s3:ListBucket"
     ]
     resources = [
-      "arn:aws:s3:::${var.s3_bucket_name}"
+      "arn:aws:s3:::${local.s3_bucket_name}"
     ]
   }
 
@@ -64,7 +67,7 @@ data "aws_iam_policy_document" "s3_access" {
       "s3:DeleteObject"
     ]
     resources = [
-      "arn:aws:s3:::${var.s3_bucket_name}/*"
+      "arn:aws:s3:::${local.s3_bucket_name}/*"
     ]
   }
 }
