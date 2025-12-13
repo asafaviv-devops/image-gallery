@@ -496,36 +496,222 @@ Email alerts sent for:
 
 ## 🔄 CI/CD Pipeline
 
-### GitHub Actions Workflows
+The project includes a complete CI/CD pipeline using GitHub Actions with two workflows:
 
-**CI Pipeline** (`.github/workflows/ci.yml`)
-- Triggered on: Push to any branch
-- Steps:
-  1. Checkout code
-  2. Build Docker image
-  3. Security scan (Trivy)
-  4. Run tests
-  5. Push to ECR
+### CI Workflow (`ci.yml`) - Build & Security
 
-**CD Pipeline** (`.github/workflows/cd.yml`)
-- Triggered on: Push to `main`
-- Steps:
-  1. Configure AWS credentials (OIDC)
-  2. Login to ECR
-  3. Update kubeconfig
-  4. Deploy via Helm
-  5. Verify deployment
+**Location:** `.github/workflows/ci.yml`
+
+**Triggers:**
+- Push to `main` or `develop` branches
+- Pull requests to `main` or `develop`
+- Changes to: `app/**`, `Dockerfile`, `requirements.txt`
+- Manual trigger (`workflow_dispatch`)
+
+**Steps:**
+
+1. **Checkout Code**
+   - Uses: `actions/checkout@v4`
+
+2. **AWS Authentication (OIDC)**
+   - Uses: `aws-actions/configure-aws-credentials@v4`
+   - Assumes IAM role via OIDC (no static credentials!)
+   - Verifies AWS identity
+
+3. **Login to Amazon ECR**
+   - Uses: `aws-actions/amazon-ecr-login@v2`
+
+4. **Build Docker Image**
+   - Uses Docker Buildx for multi-platform builds
+   - Implements layer caching via GitHub Actions cache
+   - Platform: `linux/amd64`
+
+5. **Tag Image**
+   - `latest` (for default branch)
+   - `{branch}-{sha}` (for feature branches)
+   - `pr-{number}` (for pull requests)
+
+6. **Push to ECR**
+   - Multi-tag push to Amazon ECR
+
+7. **Security Scan**
+   - Uses: `aquasecurity/trivy-action`
+   - Scans for vulnerabilities
+   - Uploads results to GitHub Security tab (SARIF format)
+   - Continues on error (doesn't block deployment)
+
+8. **Build Summary**
+   - Displays build info in GitHub Actions summary
+
+**Example Workflow Run:**
+```
+✅ Build Docker image → ✅ Push to ECR → ✅ Security scan → ✅ Summary
+```
+
+---
+
+### CD Workflow (`cd-helm.yml`) - Deploy to EKS
+
+**Location:** `.github/workflows/cd-helm.yml`
+
+**Triggers:**
+- Automatically after successful CI workflow completion
+- Manual trigger with environment selection (`dev`, `staging`, `prod`)
+
+**Environment Mapping:**
+- `main` branch → `prod` environment
+- `develop` branch → `dev` environment
+- Manual trigger → user-selected environment
+
+**Steps:**
+
+1. **Determine Environment**
+   - Automatically selects based on branch
+   - Or uses manual input from `workflow_dispatch`
+
+2. **AWS Authentication (OIDC)**
+   - Assumes role for EKS access
+
+3. **Verify Cluster Exists**
+   - Checks cluster: `image-gallery-{env}-eks-cluster`
+   - Fails if cluster not found
+
+4. **Update kubeconfig**
+   - Configures kubectl for target cluster
+   - Verifies connection with `kubectl cluster-info`
+
+5. **Install Helm**
+   - Uses: `azure/setup-helm@v3`
+   - Version: `latest`
+
+6. **Deploy with Helm**
+   ```bash
+   helm upgrade --install image-gallery ./helm/image-gallery \
+     --namespace image-gallery \
+     --values values.yaml \
+     --values values-{env}.yaml \
+     --set image.tag={TAG} \
+     --set config.s3Bucket={S3_BUCKET} \
+     --set serviceAccount.annotations."eks.amazonaws.com/role-arn"={IRSA_ROLE_ARN} \
+     --wait
+   ```
+
+7. **Verify Deployment**
+   - Checks deployment status
+   - Counts ready pods vs total pods
+   - Fails if any pods are not ready
+
+8. **Get Helm Release Info**
+   - Displays Helm release status
+   - Shows deployed resources
+
+9. **Deployment Summary**
+   - Environment, image tag, cluster info
+   - Helm release details
+   - Pod status
+   - Service endpoints
+
+**Example Workflow Run:**
+```
+CI Complete → ✅ Select env → ✅ Connect to EKS → ✅ Helm deploy → ✅ Verify → ✅ Summary
+```
+
+---
 
 ### Required GitHub Secrets
 
-Configure in **Settings → Secrets → Actions**:
+Configure in **Settings → Secrets and variables → Actions**:
 
-| Secret | Description |
-|--------|-------------|
-| `AWS_ROLE_ARN` | GitHub Actions OIDC role ARN |
-| `ECR_REPOSITORY` | ECR repository URL |
-| `EKS_CLUSTER_NAME` | EKS cluster name |
-| `AWS_REGION` | AWS region (us-east-1) |
+| Secret | Description | Example | How to Get |
+|--------|-------------|---------|------------|
+| `AWS_ROLE_ARN` | IAM role for GitHub OIDC | `arn:aws:iam::123456789012:role/...` | Terraform output from CI pipeline setup |
+| `ECR_REPOSITORY` | ECR repository name | `image-gallery` | Terraform output |
+| `ECR_REPOSITORY_URL` | Full ECR URL | `123456789012.dkr.ecr.us-east-1.amazonaws.com/image-gallery` | Terraform output |
+| `AWS_REGION` | AWS region | `us-east-1` | From your AWS config |
+| `AWS_ACCOUNT_ID` | AWS account ID | `123456789012` | `aws sts get-caller-identity` |
+| `S3_BUCKET_NAME` | S3 bucket for images | `image-gallery-dev-images` | Terraform output |
+| `IRSA_ROLE_ARN` | IRSA role for pods | `arn:aws:iam::123456789012:role/...` | Terraform output from EKS module |
+
+**Quick Setup with Script:**
+```bash
+cd terraform/ci-pipeline
+./sync-to-github.sh
+```
+
+This automatically syncs all secrets to GitHub!
+
+---
+
+### Manual Workflow Triggers
+
+#### Trigger CI Manually:
+1. Go to **Actions** → **CI - Build and Push to ECR**
+2. Click **Run workflow**
+3. Select branch
+4. Click **Run workflow**
+
+#### Trigger CD Manually:
+1. Go to **Actions** → **CD - Deploy to EKS**
+2. Click **Run workflow**
+3. Select:
+   - **Environment**: `dev`, `staging`, or `prod`
+   - **Image tag**: e.g., `latest`, `main-abc1234`
+4. Click **Run workflow**
+
+---
+
+### Pipeline Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Developer pushes to main/develop                       │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────┐
+│  CI Workflow (ci.yml)                                   │
+│  ├── Checkout code                                      │
+│  ├── AWS auth (OIDC)                                    │
+│  ├── Build Docker image                                 │
+│  ├── Push to ECR                                        │
+│  └── Security scan (Trivy)                              │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 │ (on success)
+                 ▼
+┌─────────────────────────────────────────────────────────┐
+│  CD Workflow (cd-helm.yml)                              │
+│  ├── Determine environment (main=prod, develop=dev)    │
+│  ├── AWS auth (OIDC)                                    │
+│  ├── Update kubeconfig                                  │
+│  ├── Helm upgrade --install                             │
+│  ├── Verify deployment                                  │
+│  └── Display summary                                    │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────┐
+│  Application running in EKS                             │
+│  - Pods: 2 replicas                                     │
+│  - Service: ClusterIP                                   │
+│  - Metrics: Prometheus scraping                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Best Practices Implemented
+
+✅ **OIDC Authentication** - No long-lived AWS credentials
+✅ **Multi-stage builds** - Optimized Docker images
+✅ **Layer caching** - Faster builds with GitHub Actions cache
+✅ **Security scanning** - Trivy vulnerability detection
+✅ **SARIF integration** - Security results in GitHub Security tab
+✅ **Automated deployment** - Deploy on successful CI
+✅ **Environment separation** - dev/staging/prod isolation
+✅ **Health checks** - Verify pods are ready before completing
+✅ **Helm rollback** - Automatic rollback on deployment failure
+✅ **Detailed summaries** - Rich deployment info in GitHub UI
 
 ## 🔑 Accessing Services
 
