@@ -33,16 +33,6 @@ output "sns_topic_arn" {
   description = "ARN of SNS topic for alerts (null if monitoring disabled or no email)"
 }
 
-output "cloudwatch_log_groups" {
-  value = var.enable_monitoring ? {
-    cluster     = aws_cloudwatch_log_group.eks_cluster[0].name
-    application = aws_cloudwatch_log_group.application[0].name
-    dataplane   = aws_cloudwatch_log_group.dataplane[0].name
-    host        = aws_cloudwatch_log_group.host[0].name
-  } : null
-  description = "CloudWatch log group names (null if monitoring disabled)"
-}
-
 output "prometheus_enabled" {
   value       = var.enable_prometheus
   description = "Whether Prometheus stack is enabled"

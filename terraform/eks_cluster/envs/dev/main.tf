@@ -99,8 +99,3 @@ output "sns_topic_arn" {
   value       = module.eks.sns_topic_arn
   description = "ARN of SNS topic for alerts"
 }
-
-output "cloudwatch_log_groups" {
-  value       = module.eks.cloudwatch_log_groups
-  description = "CloudWatch log group names"
-}

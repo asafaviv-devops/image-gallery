@@ -4,68 +4,13 @@
 
 locals {
   monitoring_namespace = "amazon-cloudwatch"
-  log_retention_days   = var.env == "prod" ? 30 : 7
 }
 
 #----------------------------------------------
 # CloudWatch Log Groups
 #----------------------------------------------
-
-resource "aws_cloudwatch_log_group" "eks_cluster" {
-  count = var.enable_monitoring ? 1 : 0
-
-  name              = "/aws/eks/${aws_eks_cluster.this.name}/cluster"
-  retention_in_days = local.log_retention_days
-
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${local.prefix}-eks-cluster-logs"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "application" {
-  count = var.enable_monitoring ? 1 : 0
-
-  name              = "/aws/eks/${aws_eks_cluster.this.name}/application"
-  retention_in_days = local.log_retention_days
-
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${local.prefix}-application-logs"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "dataplane" {
-  count = var.enable_monitoring ? 1 : 0
-
-  name              = "/aws/eks/${aws_eks_cluster.this.name}/dataplane"
-  retention_in_days = local.log_retention_days
-
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${local.prefix}-dataplane-logs"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "host" {
-  count = var.enable_monitoring ? 1 : 0
-
-  name              = "/aws/eks/${aws_eks_cluster.this.name}/host"
-  retention_in_days = local.log_retention_days
-
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${local.prefix}-host-logs"
-    }
-  )
-}
+# Log groups are managed by CloudWatch Observability Add-on
+# The add-on creates log groups under /aws/containerinsights/{cluster-name}/
 
 #----------------------------------------------
 # IAM Policy for CloudWatch Agent
