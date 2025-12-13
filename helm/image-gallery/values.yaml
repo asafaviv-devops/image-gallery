@@ -127,3 +127,14 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+#----------------------------------------------
+# Prometheus Metrics
+#----------------------------------------------
+metrics:
+  enabled: false
+  port: http
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}

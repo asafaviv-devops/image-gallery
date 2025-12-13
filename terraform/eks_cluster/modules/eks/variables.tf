@@ -126,3 +126,9 @@ variable "alert_email" {
   type        = string
   default     = ""
 }
+
+variable "enable_prometheus" {
+  description = "Enable Prometheus and Grafana for application metrics"
+  type        = bool
+  default     = false
+}

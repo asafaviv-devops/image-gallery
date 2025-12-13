@@ -38,3 +38,6 @@ resources:
 serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::184890426414:role/image-gallery-dev-app-sa-role"
+
+metrics:
+  enabled: true

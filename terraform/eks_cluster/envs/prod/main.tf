@@ -76,6 +76,7 @@ module "eks" {
   # Monitoring
   enable_monitoring = true
   alert_email       = var.alert_email
+  enable_prometheus = true
 
   tags = {}
 }

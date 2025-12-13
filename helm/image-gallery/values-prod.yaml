@@ -54,3 +54,6 @@ affinity:
             matchLabels:
               app.kubernetes.io/name: image-gallery
           topologyKey: kubernetes.io/hostname
+
+metrics:
+  enabled: true

@@ -42,3 +42,14 @@ output "cloudwatch_log_groups" {
   } : null
   description = "CloudWatch log group names (null if monitoring disabled)"
 }
+
+output "prometheus_enabled" {
+  value       = var.enable_prometheus
+  description = "Whether Prometheus stack is enabled"
+}
+
+output "grafana_admin_password" {
+  value       = var.enable_prometheus ? "admin" : null
+  description = "Grafana admin password (change this in production!)"
+  sensitive   = true
+}
