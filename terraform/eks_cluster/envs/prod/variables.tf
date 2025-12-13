@@ -80,3 +80,12 @@ variable "node_min_size" {
   description = "Minimum number of worker nodes"
   type        = number
 }
+
+#----------------------------------------------
+# Kubernetes Namespace
+#----------------------------------------------
+variable "namespace_name" {
+  description = "Kubernetes namespace name for application deployment (defaults to app_name if not specified)"
+  type        = string
+  default     = ""
+}

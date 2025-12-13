@@ -61,3 +61,24 @@ module "eks" {
   tags = {}
 }
 
+#----------------------------------------------
+# Environment Module (Kubernetes + Namespace)
+#----------------------------------------------
+module "environment" {
+  source = "../../modules/environment"
+
+  # EKS Cluster Info
+  cluster_endpoint       = module.eks.cluster_endpoint
+  cluster_ca_certificate = module.eks.cluster_ca_certificate
+  cluster_name           = module.eks.cluster_name
+  cluster_id             = module.eks.cluster_name
+
+  # Terraform Role
+  terraform_role_arn = var.role_arn
+
+  # Application Config
+  app_name       = var.app_name
+  env            = var.env
+  namespace_name = var.namespace_name
+}
+
