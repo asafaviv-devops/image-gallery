@@ -99,3 +99,23 @@ output "sns_topic_arn" {
   value       = module.eks.sns_topic_arn
   description = "ARN of SNS topic for alerts"
 }
+
+output "cluster_name" {
+  value       = module.eks.cluster_name
+  description = "EKS cluster name"
+}
+
+output "kubectl_config_command" {
+  value       = module.eks.kubectl_config_command
+  description = "Command to configure kubectl for this cluster"
+}
+
+output "grafana_service_command" {
+  value       = module.eks.grafana_service_command
+  description = "Command to get Grafana LoadBalancer URL"
+}
+
+output "monitoring_namespace" {
+  value       = module.eks.monitoring_namespace
+  description = "Namespace where Prometheus and Grafana are deployed"
+}

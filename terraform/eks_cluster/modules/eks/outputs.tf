@@ -43,3 +43,23 @@ output "grafana_admin_password" {
   description = "Grafana admin password (change this in production!)"
   sensitive   = true
 }
+
+output "monitoring_namespace" {
+  value       = var.enable_prometheus ? local.prometheus_namespace : null
+  description = "Namespace where Prometheus and Grafana are deployed"
+}
+
+output "kubectl_config_command" {
+  value       = "aws eks update-kubeconfig --region us-east-1 --name ${aws_eks_cluster.this.name}"
+  description = "Command to configure kubectl for this cluster"
+}
+
+output "grafana_service_command" {
+  value       = var.enable_prometheus ? "kubectl get svc -n ${local.prometheus_namespace} kube-prometheus-stack-grafana -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'" : null
+  description = "Command to get Grafana LoadBalancer URL"
+}
+
+output "prometheus_service_command" {
+  value       = var.enable_prometheus ? "kubectl get svc -n ${local.prometheus_namespace} kube-prometheus-stack-prometheus -o jsonpath='{.spec.clusterIP}'" : null
+  description = "Command to get Prometheus service ClusterIP (use port-forward to access)"
+}
