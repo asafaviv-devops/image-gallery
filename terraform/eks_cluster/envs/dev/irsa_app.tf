@@ -1,6 +1,6 @@
 locals {
   sa_namespace = var.app_name  # ✅ גנרי - uses app_name variable
-  sa_name      = "${var.app_name}-sa"  # ✅ גנרי - dynamically generated
+  sa_name      = var.app_name  # ✅ גנרי - matches Helm ServiceAccount name
 
   prefix = "${var.app_name}-${var.env}"
 
