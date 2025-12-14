@@ -1,0 +1,13 @@
+apiVersion: v2
+name: image-gallery
+description: A Helm chart for Image Gallery application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - image-gallery
+  - fastapi
+  - kubernetes
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com

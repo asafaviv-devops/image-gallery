@@ -1,0 +1,29 @@
+CI Pipeline Setup Complete
+==========================
+
+GitHub Repository: asafaviv-devops/image-gallery
+AWS Region: us-east-1
+AWS Account: 184890426414
+
+GitHub Actions Role ARN:
+arn:aws:iam::184890426414:role/image-gallery-github-actions-role
+
+ECR Repository URL:
+184890426414.dkr.ecr.us-east-1.amazonaws.com/image-gallery
+
+Next Steps:
+1. Add GitHub Secret:
+   - Go to: https://github.com/asafaviv-devops/image-gallery/settings/secrets/actions
+   - Name: AWS_ROLE_ARN
+   - Value: arn:aws:iam::184890426414:role/image-gallery-github-actions-role
+
+2. Copy workflow file:
+   cp ../../../github-workflows/ci.yml .github/workflows/
+
+3. Commit and push:
+   git add .github/workflows/ci.yml
+   git commit -m "Add CI workflow"
+   git push
+
+4. Watch the workflow run:
+   https://github.com/asafaviv-devops/image-gallery/actions
